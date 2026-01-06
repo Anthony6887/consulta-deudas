@@ -98,7 +98,7 @@ export default function ConsultaForm({ onResult }: Props) {
                 <button
                     type="button"
                     onClick={handleNuevaConsulta}
-                    className="flex-1 rounded-lg bg-green   -300 py-3 font-semibold text-gray-800 hover:bg-green-400"
+                    className="flex-1 rounded-lg bg-green-300 py-3 font-semibold text-gray-800 hover:bg-green-400"
                 >
                     Nueva Consulta
                 </button>
@@ -108,9 +108,8 @@ export default function ConsultaForm({ onResult }: Props) {
                 >
                     Consultar
                 </button>
-
-                
             </div>
+
 
             {loading && <Loader />}
         </form>
