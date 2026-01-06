@@ -21,7 +21,6 @@ export default function ConsultaForm({ onResult }: Props) {
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-
         if (!captchaOk) {
             alert('CAPTCHA incorrecto.');
             return;
@@ -39,30 +38,28 @@ export default function ConsultaForm({ onResult }: Props) {
 
             onResult(data);
 
-            /* =========================
-               LIMPIAR FORMULARIO
-            ========================= */
-            formRef.current?.reset();     // limpia inputs
-            setCaptchaOk(false);          // invalida captcha
-            setCaptchaKey(k => k + 1);    // regenera captcha
+            // LIMPIAR FORMULARIO DESPUÉS DE CONSULTAR
+            formRef.current?.reset();
+            setCaptchaOk(false);
+            setCaptchaKey(k => k + 1);
 
         } finally {
             setLoading(false);
         }
     };
 
+    const handleNuevaConsulta = () => {
+        // Limpia el formulario y reinicia el captcha
+        formRef.current?.reset();
+        setCaptchaOk(false);
+        setCaptchaKey(k => k + 1);
+    };
+
     return (
-        <form
-            ref={formRef}
-            onSubmit={handleSubmit}
-            className="space-y-6"
-        >
+        <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
             <AvisoProteccionDatos />
 
-            {/* UNA SOLA FILA CON 3 CAMPOS */}
             <div className="grid gap-4 md:grid-cols-3 items-end">
-
-                {/* TIPO */}
                 <div className="flex flex-col">
                     <label className="mb-1 text-sm font-medium text-gray-700">
                         Tipo
@@ -78,7 +75,6 @@ export default function ConsultaForm({ onResult }: Props) {
                     </select>
                 </div>
 
-                {/* IDENTIFICACIÓN */}
                 <div className="flex flex-col">
                     <label className="mb-1 text-sm font-medium text-gray-700">
                         Identificación
@@ -93,29 +89,30 @@ export default function ConsultaForm({ onResult }: Props) {
                     />
                 </div>
 
-                {/* CAPTCHA */}
                 <div className="flex flex-col">
-                        <Captcha
-                            key={captchaKey}
-                            onValidate={setCaptchaOk}
-                        />
-
+                    <Captcha key={captchaKey} onValidate={setCaptchaOk} />
                 </div>
-
-
             </div>
 
+            <div className="flex gap-4">
+                <button
+                    type="button"
+                    onClick={handleNuevaConsulta}
+                    className="flex-1 rounded-lg bg-green   -300 py-3 font-semibold text-gray-800 hover:bg-green-400"
+                >
+                    Nueva Consulta
+                </button>
+                <button
+                    type="submit"
+                    className="flex-1 rounded-lg bg-blue-600 py-3 font-semibold text-white hover:bg-blue-700"
+                >
+                    Consultar
+                </button>
 
-
-            <button
-                type="submit"
-                className="w-full rounded-lg bg-blue-600 py-3 font-semibold text-white hover:bg-blue-700"
-            >
-                Consultar
-            </button>
+                
+            </div>
 
             {loading && <Loader />}
         </form>
-
     );
 }
