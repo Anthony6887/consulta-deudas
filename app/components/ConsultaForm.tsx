@@ -9,9 +9,10 @@ import { RespuestaDeudas } from '../types/deudas';
 
 type Props = {
     onResult: (data: RespuestaDeudas) => void;
+    onReset?: () => void; // Para limpiar la tabla en la página principal
 };
 
-export default function ConsultaForm({ onResult }: Props) {
+export default function ConsultaForm({ onResult, onReset }: Props) {
     const formRef = useRef<HTMLFormElement | null>(null);
 
     const [loading, setLoading] = useState(false);
@@ -38,21 +39,23 @@ export default function ConsultaForm({ onResult }: Props) {
 
             onResult(data);
 
-            // LIMPIAR FORMULARIO DESPUÉS DE CONSULTAR
+            // Limpiar formulario después de consultar
             formRef.current?.reset();
             setCaptchaOk(false);
             setCaptchaKey(k => k + 1);
-
         } finally {
             setLoading(false);
         }
     };
 
     const handleNuevaConsulta = () => {
-        // Limpia el formulario y reinicia el captcha
+        // Limpiar formulario
         formRef.current?.reset();
         setCaptchaOk(false);
         setCaptchaKey(k => k + 1);
+
+        // Limpiar resultados en la página principal
+        onReset?.();
     };
 
     return (
@@ -60,6 +63,7 @@ export default function ConsultaForm({ onResult }: Props) {
             <AvisoProteccionDatos />
 
             <div className="grid gap-4 md:grid-cols-3 items-end">
+                {/* SELECT TIPO */}
                 <div className="flex flex-col">
                     <label className="mb-1 text-sm font-medium text-gray-700">
                         Tipo
@@ -68,13 +72,15 @@ export default function ConsultaForm({ onResult }: Props) {
                         name="tipo"
                         required
                         className="h-[44px] rounded-md border border-gray-300 px-3
-                       focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                        focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                        defaultValue="cedula"
                     >
                         <option value="cedula">Cédula</option>
                         <option value="ciu">CIU</option>
                     </select>
                 </div>
 
+                {/* INPUT IDENTIFICACIÓN */}
                 <div className="flex flex-col">
                     <label className="mb-1 text-sm font-medium text-gray-700">
                         Identificación
@@ -85,15 +91,17 @@ export default function ConsultaForm({ onResult }: Props) {
                         required
                         inputMode="numeric"
                         className="h-[44px] rounded-md border border-gray-300 px-3
-                       focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                        focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                     />
                 </div>
 
+                {/* CAPTCHA */}
                 <div className="flex flex-col">
                     <Captcha key={captchaKey} onValidate={setCaptchaOk} />
                 </div>
             </div>
 
+            {/* BOTONES */}
             <div className="flex gap-4">
                 <button
                     type="button"
@@ -110,7 +118,7 @@ export default function ConsultaForm({ onResult }: Props) {
                 </button>
             </div>
 
-
+            {/* LOADER */}
             {loading && <Loader />}
         </form>
     );

@@ -20,7 +20,11 @@ export default function Home() {
       </header>
 
       {/* FORMULARIO */}
-      <ConsultaForm onResult={setResultado} />
+      <ConsultaForm
+        onResult={setResultado}
+        onReset={() => setResultado(null)} // limpia la tabla
+      />
+
 
       {/* RESULTADOS */}
       {resultado && (
