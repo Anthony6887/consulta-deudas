@@ -1,18 +1,38 @@
-export interface Deuda {
-    CANTIDAD: number;
-    IMPUESTO: string;
-    TOTAL: number | string;
-}
+// types/deudas.ts
 
 export interface Persona {
-    CEDULA_RUC?: string;
-    CIU?: string;
-    NOMBRES: string;
+    cedula_ruc: string | null;
+    ciu: string | null;
+    nombres: string;
+    apellidos: string;
+    nombreCompleto: string;
+    razonSocial?: string;
+    nombre?: string;
 }
 
-export interface RespuestaDeudas {
-    message: string;
-    persona: Persona;
-    deudas: Deuda[];
-    totalGeneral: string;
+export interface DeudaPorImpuesto {
+    impuesto: string;
+    cantidad: number;
+    total: string;
 }
+
+export interface DeudaPorAnio {
+    anio: number;
+    total: string;
+}
+
+export type ResumenDeudas = {
+    totalAdeudado: number;
+    totalGeneral: string;   // 👈 STRING
+    totalAnios: string;     // 👈 STRING
+    cantidadAnios: number;
+};
+
+
+export interface RespuestaDeudas {
+    persona: Persona;
+    resumen: ResumenDeudas;
+    porImpuesto: DeudaPorImpuesto[];
+    porAnio: DeudaPorAnio[];
+}
+

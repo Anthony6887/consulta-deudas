@@ -1,120 +1,125 @@
 'use client';
 
-import { MdPerson, MdBadge, MdPayments } from 'react-icons/md';
-import type { Deuda, Persona } from '../types/deudas';
+import { User, DollarSign, Calendar } from 'lucide-react';
+import { ResumenDeudas, Persona } from '../types/deudas';
 
-type DeudasTableProps = {
-    persona: Persona;
-    deudas: Deuda[];
-    totalGeneral: string;
-};
+/* ===========================
+   Helpers seguros (SIN any)
+   =========================== */
 
-const ocultarIdentificacion = (id?: string) => {
-    if (!id || id.length < 4) return '***';
-    return `${id.slice(0, 2)}${'*'.repeat(id.length - 4)}${id.slice(-2)}`;
-};
+function getString(
+    obj: unknown,
+    keys: string[],
+    fallback = '—'
+): string {
+    if (typeof obj !== 'object' || obj === null) return fallback;
 
-const ocultarNombre = (nombre: string) => {
-    return nombre
-        .split(' ')
-        .map(p =>
-            p.length > 1
-                ? p[0] + '*'.repeat(p.length - 1)
-                : p
-        )
-        .join(' ');
-};
-
-export default function DeudasTable({
-    persona,
-    deudas,
-    totalGeneral,
-}: DeudasTableProps) {
-
-    if (!deudas || deudas.length === 0) {
-        return (
-            <div className="rounded-lg border border-yellow-300 bg-yellow-50 p-4 text-sm text-yellow-800">
-                No se encontraron deudas registradas.
-            </div>
-        );
+    for (const key of keys) {
+        if (
+            key in obj &&
+            typeof (obj as Record<string, unknown>)[key] === 'string'
+        ) {
+            return (obj as Record<string, unknown>)[key] as string;
+        }
     }
 
+    return fallback;
+}
+
+function getNumber(
+    obj: unknown,
+    keys: string[],
+    fallback = 0
+): number {
+    if (typeof obj !== 'object' || obj === null) return fallback;
+
+    for (const key of keys) {
+        const value = (obj as Record<string, unknown>)[key];
+        if (typeof value === 'number') {
+            return value;
+        }
+    }
+
+    return fallback;
+}
+
+/* ===========================
+   Component
+   =========================== */
+
+type Props = {
+    resumen: ResumenDeudas;
+    persona: Persona;
+};
+
+export default function ResumenCards({ resumen, persona }: Props) {
+    const nombreContribuyente = getString(persona, [
+        'nombreCompleto',
+        'razonSocial',
+        'nombre',
+        'nombres',
+    ]);
+
+    const totalAdeudado = getNumber(resumen, [
+        'totalAdeudado',
+        'total',
+        'montoTotal',
+    ]);
+
+    const aniosRegistrados = getNumber(resumen, [
+        'cantidadAnios',
+        'anios',
+        'totalAnios',
+    ]);
+
+    const cards = [
+        {
+            id: 'persona',
+            titulo: 'Contribuyente',
+            valor: nombreContribuyente,
+            icon: <User className="h-5 w-5" />,
+            color: 'bg-blue-100 text-blue-700',
+        },
+        {
+            id: 'total',
+            titulo: 'Total Adeudado',
+            valor: `$ ${totalAdeudado.toFixed(2)}`,
+            icon: <DollarSign className="h-5 w-5" />,
+            color: 'bg-red-100 text-red-700',
+        },
+        {
+            id: 'anios',
+            titulo: 'Años Registrados',
+            valor: aniosRegistrados.toString(),
+            icon: <Calendar className="h-5 w-5" />,
+            color: 'bg-gray-100 text-gray-700',
+        },
+    ];
+
     return (
-        <section className="space-y-6">
-            {/* CONTRIBUYENTE */}
-            <div className="flex items-center gap-4 rounded-xl border border-blue-200 bg-blue-50 p-5">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 text-white">
-                    <MdPerson size={26} />
-                </div>
+        <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]">
+            {cards.map(card => (
+                <div
+                    key={card.id}
+                    className="rounded-xl bg-white/95 p-4 shadow-md transition hover:shadow-lg"
+                >
+                    <div className="flex items-start gap-3">
+                        <div className={`rounded-lg p-2 ${card.color}`}>
+                            {card.icon}
+                        </div>
 
-                <div>
-                    <p className="text-xs uppercase tracking-wide text-blue-700">
-                        Contribuyente
-                    </p>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium text-gray-500">
+                                {card.titulo}
+                            </p>
 
-                    <p className="text-lg font-semibold text-gray-900">
-                        {ocultarNombre(persona.NOMBRES)}
-                    </p>
-
-                    <div className="flex items-center gap-1 text-sm text-gray-600">
-                        <MdBadge />
-                        {ocultarIdentificacion(persona.CEDULA_RUC || persona.CIU)}
+                            <p className="mt-1 break-words text-sm font-semibold text-gray-800">
+                                {card.valor}
+                            </p>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            {/* TABLA */}
-            <div className="overflow-hidden rounded-xl border shadow-sm">
-                <table className="min-w-full text-sm">
-                    <thead className="bg-gradient-to-r from-slate-100 to-slate-200">
-                        <tr>
-                            <th className="px-4 py-3 text-left font-semibold text-gray-700">
-                                Impuesto / Servicio
-                            </th>
-                            <th className="px-4 py-3 text-center font-semibold text-gray-700">
-                                Cant.
-                            </th>
-                            <th className="px-4 py-3 text-right font-semibold text-gray-700">
-                                Total ($)
-                            </th>
-                        </tr>
-                    </thead>
-
-                    <tbody className="divide-y">
-                        {deudas.map((d, index) => (
-                            <tr key={index} className="transition hover:bg-slate-50">
-                                <td className="px-4 py-3 font-medium text-gray-800">
-                                    {d.IMPUESTO}
-                                </td>
-
-                                <td className="px-4 py-3 text-center">
-                                    <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold">
-                                        {d.CANTIDAD}
-                                    </span>
-                                </td>
-
-                                <td className="px-4 py-3 text-right font-semibold text-gray-900">
-                                    ${Number(d.TOTAL).toFixed(2)}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-
-                    <tfoot>
-                        <tr className="bg-slate-100">
-                            <td colSpan={2} className="px-4 py-4 text-right">
-                                <span className="flex items-center justify-end gap-2 font-semibold text-gray-800">
-                                    <MdPayments size={20} />
-                                    Total General
-                                </span>
-                            </td>
-                            <td className="px-4 py-4 text-right text-lg font-bold text-green-700">
-                                ${Number(totalGeneral).toFixed(2)}
-                            </td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-        </section>
+            ))}
+        </div>
     );
 }

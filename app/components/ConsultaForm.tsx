@@ -2,7 +2,6 @@
 
 import { useRef, useState } from 'react';
 import Captcha from './Captcha';
-import AvisoProteccionDatos from './AvisoProteccionDatos';
 import Loader from './Loader';
 import { consultarDeudas } from '../servicios/deudas.service';
 import { RespuestaDeudas } from '../types/deudas';
@@ -60,7 +59,7 @@ export default function ConsultaForm({ onResult, onReset }: Props) {
 
     return (
         <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
-            <AvisoProteccionDatos />
+
 
             <div className="grid gap-4 md:grid-cols-3 items-end">
                 {/* SELECT TIPO */}
