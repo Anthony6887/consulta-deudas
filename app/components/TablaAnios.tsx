@@ -1,62 +1,59 @@
 'use client';
 
 import { useState } from 'react';
-import { MdTimeline, MdExpandMore, MdExpandLess } from 'react-icons/md';
-import { DeudaPorAnio } from '../types/deudas';
+import { PorAnio } from '../types/deudas';
+import { paginate } from '../utils/pagination';
 
 type Props = {
-    data?: DeudaPorAnio[];
+    data: PorAnio[];
 };
 
-export default function TablaAnios({ data = [] }: Props) {
-    const [open, setOpen] = useState(true);
+const PAGE_SIZE = 6;
+
+export default function TablaAnios({ data }: Props) {
+    const [page, setPage] = useState(1);
+
+    const { slice, totalPages } = paginate(data, page, PAGE_SIZE);
 
     return (
-        <div className="h-full min-h-[360px] rounded-xl bg-white shadow-md border border-gray-200">
-            {/* HEADER */}
-            <button
-                onClick={() => setOpen(!open)}
-                className="flex w-full items-center justify-between border-b p-4"
-            >
-                <h3 className="flex items-center gap-2 font-semibold text-gray-700">
-                    <MdTimeline className="text-blue-600" />
-                    Histórico por Año
-                </h3>
-                {open ? <MdExpandLess /> : <MdExpandMore />}
-            </button>
+        <div>
+            <ul className="divide-y text-sm">
+                {slice.map((a, i) => (
+                    <li key={i} className="flex justify-between px-2 py-2">
+                        <span>{a.anio}</span>
+                        <span>${a.total.toFixed(2)}</span>
+                    </li>
+                ))}
+            </ul>
 
-            {/* BODY */}
-            {open && (
-                <div className="h-[calc(100%-56px)] overflow-auto p-4">
-                    {!data.length ? (
-                        <p className="text-center text-sm text-gray-500">
-                            No existe información por año
-                        </p>
-                    ) : (
-                        <table className="w-full text-sm">
-                            <thead className="sticky top-0 bg-gray-100 text-gray-600">
-                                <tr>
-                                    <th className="p-2 text-left">Año</th>
-                                    <th className="p-2 text-right">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {data.map(row => (
-                                    <tr
-                                        key={row.anio}
-                                        className="border-b last:border-0 hover:bg-gray-50"
-                                    >
-                                        <td className="p-2">{row.anio}</td>
-                                        <td className="p-2 text-right font-medium">
-                                            $ {Number(row.total).toFixed(2)}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    )}
+            {/* PAGINADOR */}
+            <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
+                <span>Histórico por año</span>
+
+                <div className="flex items-center gap-1">
+                    <button
+                        onClick={() => setPage(p => Math.max(p - 1, 1))}
+                        disabled={page === 1}
+                        className="rounded px-2 py-1 disabled:opacity-40"
+                    >
+                        Anterior
+                    </button>
+
+                    <span className="rounded bg-blue-50 px-2 py-1 text-blue-700">
+                        {page}
+                    </span>
+
+                    <button
+                        onClick={() =>
+                            setPage(p => Math.min(p + 1, totalPages))
+                        }
+                        disabled={page === totalPages}
+                        className="rounded px-2 py-1 disabled:opacity-40"
+                    >
+                        Siguiente
+                    </button>
                 </div>
-            )}
+            </div>
         </div>
     );
 }

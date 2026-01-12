@@ -1,38 +1,55 @@
-// types/deudas.ts
-
-export interface Persona {
-    cedula_ruc: string | null;
-    ciu: string | null;
+/** ===============================
+ *  PERSONA
+ *  =============================== */
+export type Persona = {
     nombres: string;
-    apellidos: string;
-    nombreCompleto: string;
-    razonSocial?: string;
-    nombre?: string;
-}
+    cedula_ruc: string;
+    ciu: number;
+};
 
-export interface DeudaPorImpuesto {
-    impuesto: string;
-    cantidad: number;
-    total: string;
-}
-
-export interface DeudaPorAnio {
-    anio: number;
-    total: string;
-}
-
+/** ===============================
+ *  RESUMEN GENERAL
+ *  =============================== */
 export type ResumenDeudas = {
-    totalAdeudado: number;
-    totalGeneral: string;   // 👈 STRING
-    totalAnios: string;     // 👈 STRING
-    cantidadAnios: number;
+    totalGeneral: number;
+    totalAnios: number;
+};
+
+/** ===============================
+ *  POR IMPUESTO
+ *  =============================== */
+export interface PorImpuesto {
+    impuesto: string;     // nombre del impuesto
+    total: number;        // total adeudado
+    cantidad: number;    // cantidad de registros
+    historicoAnterior?: number; // opcional
+}
+
+
+/** ===============================
+ *  POR AÑO
+ *  =============================== */
+export type PorAnio = {
+    anio: number;
+    total: number;
+};
+
+/** ===============================
+ *  RESPUESTA COMPLETA API
+ *  =============================== */
+export type RespuestaDeudas = {
+    ok: true;
+    message: string;
+    persona: Persona;
+    resumen: ResumenDeudas;
+    porImpuesto: PorImpuesto[];
+    porAnio: PorAnio[];
 };
 
 
-export interface RespuestaDeudas {
-    persona: Persona;
-    resumen: ResumenDeudas;
-    porImpuesto: DeudaPorImpuesto[];
-    porAnio: DeudaPorAnio[];
-}
+export type RespuestaSinDeuda = {
+    ok: false;
+    message: string;
+};
 
+export type RespuestaConsulta = RespuestaDeudas | RespuestaSinDeuda;

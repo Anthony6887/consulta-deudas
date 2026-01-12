@@ -1,124 +1,93 @@
 'use client';
 
-import { useRef, useState } from 'react';
-import Captcha from './Captcha';
-import Loader from './Loader';
-import { consultarDeudas } from '../servicios/deudas.service';
-import { RespuestaDeudas } from '../types/deudas';
+import { useState } from "react";
+import { consultarDeudas } from "../servicios/deudas.service";
+import { RespuestaConsulta } from "../types/deudas";
+import Captcha from "./Captcha";
 
 type Props = {
-    onResult: (data: RespuestaDeudas) => void;
-    onReset?: () => void; // Para limpiar la tabla en la página principal
+    onResult: (data: RespuestaConsulta) => void;
+    onReset?: () => void;
 };
 
 export default function ConsultaForm({ onResult, onReset }: Props) {
-    const formRef = useRef<HTMLFormElement | null>(null);
-
+    const [identificacion, setIdentificacion] = useState("");
+    const [tipo, setTipo] = useState("CEDULA");
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const [captchaOk, setCaptchaOk] = useState(false);
-    const [captchaKey, setCaptchaKey] = useState(0);
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setError(null);
 
         if (!captchaOk) {
-            alert('CAPTCHA incorrecto.');
+            setError("Captcha incorrecto");
             return;
         }
 
-        const form = e.currentTarget;
-
         try {
             setLoading(true);
-
-            const data = await consultarDeudas(
-                form.identificacion.value,
-                form.tipo.value
-            );
-
-            onResult(data);
-
-            // Limpiar formulario después de consultar
-            formRef.current?.reset();
-            setCaptchaOk(false);
-            setCaptchaKey(k => k + 1);
+            const response = await consultarDeudas(identificacion, tipo);
+            onResult(response);
+        } catch {
+            setError("No se pudo realizar la consulta");
+            onReset?.();
         } finally {
             setLoading(false);
         }
     };
 
-    const handleNuevaConsulta = () => {
-        // Limpiar formulario
-        formRef.current?.reset();
-        setCaptchaOk(false);
-        setCaptchaKey(k => k + 1);
-
-        // Limpiar resultados en la página principal
-        onReset?.();
-    };
-
     return (
-        <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
-
-
-            <div className="grid gap-4 md:grid-cols-3 items-end">
-                {/* SELECT TIPO */}
-                <div className="flex flex-col">
-                    <label className="mb-1 text-sm font-medium text-gray-700">
-                        Tipo
-                    </label>
-                    <select
-                        name="tipo"
-                        required
-                        className="h-[44px] rounded-md border border-gray-300 px-3
-                        focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                        defaultValue="cedula"
-                    >
-                        <option value="cedula">Cédula</option>
-                        <option value="ciu">CIU</option>
-                    </select>
-                </div>
-
-                {/* INPUT IDENTIFICACIÓN */}
-                <div className="flex flex-col">
-                    <label className="mb-1 text-sm font-medium text-gray-700">
-                        Identificación
-                    </label>
-                    <input
-                        name="identificacion"
-                        placeholder="Ej: 0102030405"
-                        required
-                        inputMode="numeric"
-                        className="h-[44px] rounded-md border border-gray-300 px-3
-                        focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                    />
-                </div>
-
-                {/* CAPTCHA */}
-                <div className="flex flex-col">
-                    <Captcha key={captchaKey} onValidate={setCaptchaOk} />
-                </div>
+        <form
+            onSubmit={handleSubmit}
+            className="flex flex-col gap-3 sm:flex-row sm:items-end"
+        >
+            {/* TIPO */}
+            <div className="flex flex-col gap-1">
+                <label className="text-xs text-gray-500">Tipo</label>
+                <select
+                    value={tipo}
+                    onChange={e => setTipo(e.target.value)}
+                    className="rounded-lg border px-3 py-2"
+                >
+                    <option value="CEDULA">Cédula</option>
+                    <option value="CIU">Ciu</option>
+                </select>
             </div>
 
-            {/* BOTONES */}
-            <div className="flex gap-4">
-                <button
-                    type="button"
-                    onClick={handleNuevaConsulta}
-                    className="flex-1 rounded-lg bg-green-300 py-3 font-semibold text-gray-800 hover:bg-green-400"
-                >
-                    Nueva Consulta
-                </button>
-                <button
-                    type="submit"
-                    className="flex-1 rounded-lg bg-blue-600 py-3 font-semibold text-white hover:bg-blue-700"
-                >
-                    Consultar
-                </button>
+            {/* IDENTIFICACIÓN */}
+            <div className="flex flex-1 flex-col gap-1">
+                <label className="text-xs text-gray-500">Identificación</label>
+                <input
+                    value={identificacion}
+                    onChange={e => setIdentificacion(e.target.value)}
+                    placeholder="Ej: 0102030405"
+                    className="rounded-lg border px-3 py-2"
+                    required
+                />
             </div>
 
-            {/* LOADER */}
-            {loading && <Loader />}
+            {/* CAPTCHA */}
+            <div className="w-40">
+                <Captcha onValidate={setCaptchaOk} />
+            </div>
+
+            {/* BOTÓN */}
+            <button
+                type="submit"
+                disabled={loading || !captchaOk}
+                className="rounded-lg bg-blue-600 px-6 py-2 text-white disabled:opacity-50"
+            >
+                {loading ? "Consultando..." : "Consultar"}
+            </button>
+
+            {/* ERROR */}
+            {error && (
+                <p className="text-sm text-red-600 sm:w-full">
+                    {error}
+                </p>
+            )}
         </form>
     );
 }
