@@ -16,10 +16,21 @@ export default function ConsultaForm({ onResult, onReset }: Props) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [captchaOk, setCaptchaOk] = useState(false);
+    const [consultado, setConsultado] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
+
+        // 🔁 SI YA CONSULTÓ → RESET
+        if (consultado) {
+            setIdentificacion("");
+            setTipo("CEDULA");
+            setCaptchaOk(false);
+            setConsultado(false);
+            onReset?.();
+            return;
+        }
 
         if (!captchaOk) {
             setError("Captcha incorrecto");
@@ -30,6 +41,7 @@ export default function ConsultaForm({ onResult, onReset }: Props) {
             setLoading(true);
             const response = await consultarDeudas(identificacion, tipo);
             onResult(response);
+            setConsultado(true); // ✅ MARCAMOS QUE YA CONSULTÓ
         } catch {
             setError("No se pudo realizar la consulta");
             onReset?.();
@@ -49,7 +61,8 @@ export default function ConsultaForm({ onResult, onReset }: Props) {
                 <select
                     value={tipo}
                     onChange={e => setTipo(e.target.value)}
-                    className="rounded-lg border px-3 py-2"
+                    disabled={consultado}
+                    className="rounded-lg border px-3 py-2 disabled:bg-gray-100"
                 >
                     <option value="CEDULA">Cédula</option>
                     <option value="CIU">Ciu</option>
@@ -62,24 +75,37 @@ export default function ConsultaForm({ onResult, onReset }: Props) {
                 <input
                     value={identificacion}
                     onChange={e => setIdentificacion(e.target.value)}
+                    disabled={consultado}
                     placeholder="Ej: 0102030405"
-                    className="rounded-lg border px-3 py-2"
+                    className="rounded-lg border px-3 py-2 disabled:bg-gray-100"
                     required
                 />
             </div>
 
             {/* CAPTCHA */}
-            <div className="w-40">
-                <Captcha onValidate={setCaptchaOk} />
-            </div>
+            {!consultado && (
+                <div className="w-40">
+                    <Captcha onValidate={setCaptchaOk} />
+                </div>
+            )}
 
-            {/* BOTÓN */}
+            {/* BOTÓN ÚNICO */}
             <button
                 type="submit"
-                disabled={loading || !captchaOk}
-                className="rounded-lg bg-blue-600 px-6 py-2 text-white disabled:opacity-50"
+                disabled={loading || (!captchaOk && !consultado)}
+                className={`
+                    rounded-lg px-6 py-2 text-white transition
+                    ${consultado
+                        ? "bg-green-600 hover:bg-green-700"
+                        : "bg-blue-600 hover:bg-blue-700"}
+                    disabled:opacity-50
+                `}
             >
-                {loading ? "Consultando..." : "Consultar"}
+                {loading
+                    ? "Consultando..."
+                    : consultado
+                        ? "Nueva consulta"
+                        : "Consultar"}
             </button>
 
             {/* ERROR */}
