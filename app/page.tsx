@@ -142,7 +142,7 @@ export default function Page() {
 
               <div className="card">
                 <h4 className="card-title">
-                  <MdHistory /> Histórico por año
+                  <MdHistory /> Deuda por año
                 </h4>
                 <TablaAnios data={data.porAnio} />
               </div>

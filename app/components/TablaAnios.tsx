@@ -28,7 +28,7 @@ export default function TablaAnios({ data }: Props) {
 
             {/* PAGINADOR */}
             <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
-                <span>Histórico por año</span>
+                <span>Deuda por año</span>
 
                 <div className="flex items-center gap-1">
                     <button
